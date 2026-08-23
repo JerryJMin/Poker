@@ -583,7 +583,6 @@ class Table:
             self.players_remaining -= 1
             self.active_in_hand -= 1
             self.set_skip_r()
-            self.poss
 
         self.players[i] = None
         self.ids.remove(player.id)
