@@ -49,6 +49,9 @@ class PokerApp:
 
         self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 
+        # For pygbag
+        # self.screen = pygame.display.set_mode((3200, 1800), pygame.RESIZABLE)
+
     def set_menu_window(self):
         self.current_window = MenuWindow(
             screen=self.screen,
@@ -120,10 +123,10 @@ class PokerApp:
                     self.current_window.handle_event(event)
 
             self.check_window_change()
-            if self.__controller is not None:
-                self.__controller.tick()
             self.current_window.update()
             self.current_window.draw()
+            if self.__controller is not None:
+                self.__controller.tick()
 
             pygame.display.flip()
             await asyncio.sleep(0)

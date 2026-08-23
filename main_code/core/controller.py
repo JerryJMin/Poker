@@ -206,6 +206,7 @@ class OfflineController(ControllerBase):
 
     def update_state(self, round_end=False):
         """Updates state and calls the traceback (emits) self.on_state_change"""
+
         self.set_state(round_end)
         self.on_state_change(deepcopy(self.state))
 
