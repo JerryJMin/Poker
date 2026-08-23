@@ -55,7 +55,10 @@ class PokerApp:
             assets=self.assets,
         )
 
-    def start_game(self, mode="Offline", host=False, host_ip=None):
+    # Add Ip address 3 lines below here e.g
+    # def start_game(self, mode="Offline", host_ip='171.35.61.2'):
+
+    def start_game(self, mode="Offline", host_ip=None): #Replace None to your '{ip address}' on this line
         """Instantiates correct controller depending on button clicked
         and instantiates the game window"""
         try:
@@ -64,7 +67,7 @@ class PokerApp:
             elif mode == "Online":
                 from core.controller import OnlineController
 
-                self.__controller = OnlineController(is_host=host, host_ip=host_ip)
+                self.__controller = OnlineController(host_ip=host_ip)
             else:
                 self.__controller = OfflineController(testing=self.testing)
 
@@ -100,7 +103,7 @@ class PokerApp:
             elif new_window == "Kuhn Poker":
                 self.start_game(mode="Kuhn")
             elif new_window == "Online Poker":
-                self.start_game(mode="Online", host=None)  # Add host here
+                self.start_game(mode="Online")  
             elif new_window == "Menu":
                 self.set_menu_window()
 

@@ -367,7 +367,7 @@ class KuhnController(ControllerBase):
 
 class OnlineController(ControllerBase):
     def __init__(
-        self, is_host=False, host_ip=None, on_state_change: None | Callable = None
+        self, host_ip=None, on_state_change: None | Callable = None
     ):
         super().__init__(on_state_change=on_state_change)
 
