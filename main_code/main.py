@@ -13,11 +13,11 @@ if sys.platform.startswith("win"):
 
 os.environ["SDL_VIDEO_HIGHDPI_DISABLED"] = "1"
 
-import pygame, socketio, asyncio
+import pygame, asyncio
 from gui.assets import Assets
 from gui.menu_window import MenuWindow
 from gui.game_window import GameWindow
-from core.controller import OfflineController, OnlineController, KuhnController
+from core.controller import OfflineController, KuhnController
 
 BASE_RESOLUTION = (1600, 900)
 FPS = 60
@@ -25,7 +25,9 @@ FPS = 60
 
 class PokerApp:
     def __init__(self, testing=False):
-        pygame.init()
+        # pygame.init()
+        pygame.font.init()
+        pygame.display.init()
         pygame.display.set_caption("Poker")
         self.set_initial_size()
         self.assets = Assets(self.screen, BASE_RESOLUTION)
@@ -55,16 +57,18 @@ class PokerApp:
 
     def start_game(self, mode="Offline", host=False, host_ip=None):
         """Instantiates correct controller depending on button clicked
-        also instantiates the game window"""
+        and instantiates the game window"""
         try:
             if mode == "Kuhn":
                 self.__controller = KuhnController()
             elif mode == "Online":
+                from core.controller import OnlineController
+
                 self.__controller = OnlineController(is_host=host, host_ip=host_ip)
             else:
                 self.__controller = OfflineController(testing=self.testing)
 
-        except socketio.exceptions.ConnectionError as e:
+        except Exception as e:
             print(f"Failed to connect to server: {e}")
             self.current_window.set_window("")
             return
@@ -74,8 +78,7 @@ class PokerApp:
             assets=self.assets,
             controller=self.__controller,
             testing=self.testing,
-            mode="Kuhn" if mode == "Kuhn" else "Poker"
-            
+            mode="Kuhn" if mode == "Kuhn" else "Poker",
         )
 
     def quit_game(self):
@@ -114,6 +117,8 @@ class PokerApp:
                     self.current_window.handle_event(event)
 
             self.check_window_change()
+            if self.__controller is not None:
+                self.__controller.tick()
             self.current_window.update()
             self.current_window.draw()
 

@@ -9,8 +9,6 @@ from copy import deepcopy
 from core.poker import Table, Human, Bot, start
 from core.kuhn import KuhnTable, KuhnBot
 from typing import Callable
-import socketio
-import threading
 import time
 
 
@@ -18,6 +16,7 @@ class ControllerBase(ABC):
     def __init__(self, on_state_change: None | Callable = None):
         super().__init__()
         self.on_state_change = on_state_change
+        self.user_action_delay = 0.5
 
         self.state = {
             "players": [
@@ -48,6 +47,10 @@ class ControllerBase(ABC):
         self.on_state_change = on_state_change
         self.update_state()
 
+    def tick(self) -> None:
+        """Advance controller work without blocking the pygame event loop."""
+        return
+
 
 class OfflineController(ControllerBase):
     def __init__(self, testing: int = False, on_state_change: None | Callable = None):
@@ -57,6 +60,7 @@ class OfflineController(ControllerBase):
         print("testing", self.testing)
         self.create_table()
         self.auto_thread_running = False
+        self.pending_round_start = False
 
     def create_table(self):
         self.table = start() if callable(start) and self.testing != "human" else Table()
@@ -73,13 +77,15 @@ class OfflineController(ControllerBase):
         self.update_state(round_end=True)
 
         if not self.auto_thread_running:
-            self.start_systems_thread()
+            self.start_systems_actions()
 
-    def start_systems_thread(self, end_valid=False):
-        t = threading.Thread(target=self._process_system_actions, args=(end_valid,))
-        t.daemon = True
+    def start_systems_actions(self, end_valid=False, delay=0):
+        """Queues a system action
+        end_valid=True/False if round ended
+        end_valid=None if action was invalid"""
         self.auto_thread_running = True
-        t.start()
+        self.pending_round_start = end_valid
+        self.next_action_at = time.monotonic() + delay
 
     def perform_action(self, action: int, amount: int = 0):
         """True/False if round end, None if move was invalid"""
@@ -102,11 +108,12 @@ class OfflineController(ControllerBase):
 
         self.update_state()
 
-        self.start_systems_thread(end_valid)
+        self.start_systems_actions(end_valid, delay=self.user_action_delay)
 
         return end_valid
 
     def _single_auto_action(self) -> tuple[None, bool]:
+        """Returns (if round finished, if an action happened)"""
         if self.table.can_move():
             player = self.table.current_player
             if isinstance(player, Bot):
@@ -120,37 +127,37 @@ class OfflineController(ControllerBase):
         return None, False
 
     def _process_system_actions(self, round_end=False):
-        try:
-            cont = True
-            while self.table.running and cont:
+        self.pending_round_start = False
+        old_end = False
+        if round_end:
+            self.table.start_round()
+            old_end = True
+            full_pause = True
+        else:
+            round_end, full_pause = self._single_auto_action()
+            self.pending_round_start = bool(round_end)
 
-                old_end = False
-                start_time = time.time()
-                if round_end:
-                    self.table.start_round()
-                    old_end = True
-                    round_end = False
-                    full_pause = True
-                else:
-                    round_end, full_pause = self._single_auto_action()
-
-                if round_end is None:
-                    cont = False
-
-                if not (
-                    self.testing and len(self.testing) >= 2 and self.testing[1] in "02"
-                ):
-                    elapsed = time.time() - start_time
-                    sleep_time = max(0, 0.5 if full_pause else 0.1 - elapsed)
-
-                    if self.state["players"][self.state["user_i"]]["folded"]:
-                        sleep_time /= 2
-
-                    time.sleep(sleep_time)
-                self.update_state(round_end=bool(old_end))
-
-        finally:
+        if round_end is None:
             self.auto_thread_running = False
+            self.update_state(round_end=False)
+            return
+
+        self.update_state(round_end=old_end)
+        if not self.table.running:
+            self.auto_thread_running = False
+            return
+
+        if self.testing and len(self.testing) >= 2 and self.testing[1] in "02":
+            delay = 0
+        else:
+            delay = 0.5 if full_pause else 0.1
+            if self.state["players"][self.state["user_i"]]["folded"]:
+                delay /= 2
+        self.next_action_at = time.monotonic() + delay
+
+    def tick(self):
+        if self.auto_thread_running and time.monotonic() >= self.next_action_at:
+            self._process_system_actions(self.pending_round_start)
 
     # State related methods
     def _get_cards(self, player):
@@ -244,6 +251,7 @@ class KuhnController(ControllerBase):
         self.table = KuhnTable(13)
         self.bot = KuhnBot()
         self.auto_thread_running = False
+        self.next_action_at = 0
 
         self.user_i = 0
         self.bot_i = 1
@@ -272,38 +280,29 @@ class KuhnController(ControllerBase):
             return
 
         self.update_state(round_end=bool(end))
-        self.start_systems_thread()
+        self.start_systems_thread(delay=self.user_action_delay)
 
         return end
 
-    def start_systems_thread(self):
-
-        t = threading.Thread(target=self._process_system_actions)
-        t.daemon = True
+    def start_systems_thread(self, delay=0.5):
         self.auto_thread_running = True
-        t.start()
+        self.next_action_at = time.monotonic() + delay
 
     def _process_system_actions(self):
-
-        try:
-            while self.table.running:
-
-                if self.table.current_player == self.bot_i:
-
-                    time.sleep(0.5)
-
-                    action = self.bot.get_action(self.table, self.bot_i)
-                    end = self.table.single_move(action)
-
-                    self.update_state(round_end=bool(end))
-                    if end:
-                        break
-
-                else:
-                    break
-
-        finally:
+        if self.table.running and self.table.current_player == self.bot_i:
+            action = self.bot.get_action(self.table, self.bot_i)
+            end = self.table.single_move(action)
+            self.update_state(round_end=bool(end))
+            if end or self.table.current_player != self.bot_i:
+                self.auto_thread_running = False
+            else:
+                self.next_action_at = time.monotonic() + 0.5
+        else:
             self.auto_thread_running = False
+
+    def tick(self):
+        if self.auto_thread_running and time.monotonic() >= self.next_action_at:
+            self._process_system_actions()
 
     def _get_cards(self, i):
 
@@ -371,6 +370,8 @@ class OnlineController(ControllerBase):
         self, is_host=False, host_ip=None, on_state_change: None | Callable = None
     ):
         super().__init__(on_state_change=on_state_change)
+
+        import socketio, threading
 
         self.sio = socketio.Client()
         self.server_url = f'http://{host_ip or "localhost"}:5000'
