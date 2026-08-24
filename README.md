@@ -54,8 +54,8 @@ The final mode (Kuhn Poker) is a simplified 2 player version of poker. The bot i
 
 NOTE: You must be on the same LAN as the host device to play
    
-Alternatively, play an offline version on the web app (let it load and click ready to start)
-https://xccn-xccn.github.io/Poker/
+Alternatively, play an offline version on the [web app](https://jerryjmin.github.io/Poker/) (let it load and click ready to start)
+
 
 ## Kuhn Poker
 ### Rules
