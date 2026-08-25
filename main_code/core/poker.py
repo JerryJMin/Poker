@@ -133,6 +133,8 @@ class PokerPlayer(ABC):
                 self.extra = self.chips
 
         else:
+
+            self.bet_count_on_action += 1
             self.action_text = f"bets {self.extra}"
 
             self.agg = True
