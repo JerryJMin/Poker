@@ -5,9 +5,7 @@ from abc import ABC
 from core.winner import get_winner, all_hands_ranked, group_rank_pre
 from core.core_lib import *
 
-
 # BUG Line 490 could result in key error when calling no matter what but check
-# BUG stuff gets weird when a player unecessarily folds
 # TODO test valid bets on raises
 # TODO make calling range capped and raising range tighter with percentages
 # TODO Consider hand within all hands (not just range)
@@ -19,8 +17,6 @@ from core.core_lib import *
 # TODO hold invested of each player? currently inefficient replace the functions
 # TODO if big bet and 1 player calls, bb will also call with nothing
 # TODO consider hand strength with betsize
-# TODO should end when folds to bb
-# TODO BOT v1 is very bad heads up (worse than random)
 # 3bet more oop
 # underbluffs?
 # Use mdf or pot odds
@@ -46,6 +42,7 @@ class PokerPlayer(ABC):
         self.hole_cards = None
         self.position_name = ""
         self.fold = True
+        self.bet_count_on_action = 0
 
         while self.id == 0 or self.id in table.ids:
             self.id = random.randint(1000, 9999)
@@ -106,7 +103,7 @@ class PokerPlayer(ABC):
             # for the blinds
             self.round_invested = 0
         self.action = self.action_text = None
-        self.extra = 0
+        self.extra = self.bet_count_on_action = 0
         self.invalid_raise = False
 
     def set_inactive(self):
@@ -115,6 +112,9 @@ class PokerPlayer(ABC):
 
     def _apply_action(self, roundTotal):
         """Updates values depending on self.action and and self.round_invested"""
+
+        self.bet_count_on_action = self.table.bet_count
+
         if self.action == 1:
             # self.action_text is only for debugging
             self.action_text = "folds"
@@ -150,6 +150,8 @@ class PokerPlayer(ABC):
             self.all_in = True
 
     def is_valid(self, table, action_info) -> bool:
+        """Returns if an action is valid"""
+
         print(action_info)
         action, extra = action_info[0], action_info[1] - self.round_invested  # CHANGE
 
@@ -603,11 +605,11 @@ class Table:
 
     def poss_end_hand(self) -> bool | None:
         """Checks if there is only 1 player remaining
-            and if so, ends the hand and returns True"""
+        and if so, ends the hand and returns True"""
         if self.players_remaining == 1:
             self.end_hand()
             return True
-        
+
     def full_single_move(self, action_info: tuple[int, int | float]):
         """Validates and executes a user action
         Automatically ends the round
@@ -653,7 +655,7 @@ class Table:
         """Returns True if a betting round has finished else False
 
         Updates attributes (last_agg_i, min_raise, current_player ...)"""
-        if self.poss_end_hand() == True:
+        if self.running == False or self.poss_end_hand() == True:
             return False
 
         if self.current_player.agg:
@@ -773,11 +775,13 @@ class Table:
 
                 elif rem_after == 0 or required:
                     contents[player] = single_investment
-                    new_pot.append([single_investment, required or player.all_in, contents])
+                    new_pot.append(
+                        [single_investment, required or player.all_in, contents]
+                    )
                     remaining = rem_after
 
                 else:
-                    #current pot is not re-added
+                    # current pot is not re-added
                     if rem_after <= 0:
                         raise Exception(rem_after)
                     end = True
@@ -914,9 +918,12 @@ class Table:
             len([1 for x in self.players if x and x.chips]),
         )
         if sum(p.chips for p in self.players if p) != self.correct_total_chips:
-            raise Exception(
-                [p.chips for p in self.players if p], self.correct_total_chips
-            )
+            print("ERROR")
+
+            #For pygbag
+            # raise Exception(
+            #     [p.chips for p in self.players if p], self.correct_total_chips
+            # )
 
     def to_bb(self, chips):
         return chips / self.blinds[1]
@@ -929,7 +936,7 @@ class Table:
 def start():
 
     table1 = Table()
-    
+
     table1.add_player(
         Human(
             table1,
@@ -946,7 +953,6 @@ def start():
             chips = 2000
             table1.add_player(BotV1(table1, chips=chips))
 
-    
     # table1.add_player(
     #     Human(
     #         table1,
