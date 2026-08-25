@@ -36,20 +36,20 @@ class MenuWindow(WindowBase):
         }
 
         # For pygbag
-        self.widgets = {
-            "0": Button(
-                "Play Offline",
-                *centre(self.assets.base_centrex, 300, 350, 150),
-                assets,
-                on_click=lambda: self.set_window("Offline Poker")
-            ),
-            "2": Button(
-                "Play Kuhn",
-                *centre(self.assets.base_centrex, 600, 350, 150),
-                assets,
-                on_click=lambda: self.set_window("Kuhn Poker")
-            ),
-        }
+        # self.widgets = {
+        #     "0": Button(
+        #         "Play Offline",
+        #         *centre(self.assets.base_centrex, 300, 350, 150),
+        #         assets,
+        #         on_click=lambda: self.set_window("Offline Poker")
+        #     ),
+        #     "2": Button(
+        #         "Play Kuhn",
+        #         *centre(self.assets.base_centrex, 600, 350, 150),
+        #         assets,
+        #         on_click=lambda: self.set_window("Kuhn Poker")
+        #     ),
+        # }
 
     def draw(self):
         self.screen.blit(self.assets.images["black_background1"], (0, 0))

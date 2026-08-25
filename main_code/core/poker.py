@@ -921,9 +921,9 @@ class Table:
             print("ERROR")
 
             #For pygbag
-            # raise Exception(
-            #     [p.chips for p in self.players if p], self.correct_total_chips
-            # )
+            raise Exception(
+                [p.chips for p in self.players if p], self.correct_total_chips
+            )
 
     def to_bb(self, chips):
         return chips / self.blinds[1]

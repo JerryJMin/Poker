@@ -52,7 +52,7 @@ class PokerApp:
         self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 
         # For pygbag
-        self.screen = pygame.display.set_mode((3200, 1800), pygame.RESIZABLE)
+        # self.screen = pygame.display.set_mode((3200, 1800), pygame.RESIZABLE)
 
     def set_menu_window(self):
         self.current_window = MenuWindow(
