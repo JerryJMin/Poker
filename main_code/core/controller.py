@@ -200,8 +200,8 @@ class OfflineController(ControllerBase):
             word = (
                 "All In"
                 if player.all_in
-                else "Bet" if self.table.bet_count < 2 else "Raise"
-            )
+                else "Bet" if player.bet_count_on_action < 2 else "Raise"
+            ) #TODOBUG
             return f"{word} {player.round_invested}"
 
     def update_state(self, round_end=False):
