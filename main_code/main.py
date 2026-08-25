@@ -13,7 +13,7 @@ if sys.platform.startswith("win"):
 
 os.environ["SDL_VIDEO_HIGHDPI_DISABLED"] = "1"
 
-import pygame, asyncio
+import pygame, asyncio, random, datetime
 from gui.assets import Assets
 from gui.menu_window import MenuWindow
 from gui.game_window import GameWindow
@@ -22,6 +22,8 @@ from core.controller import OfflineController, KuhnController
 BASE_RESOLUTION = (1600, 900)
 FPS = 60
 
+x = datetime.datetime.now()
+random.seed(x.year * x.day * x.microsecond)
 
 class PokerApp:
     def __init__(self, testing=False):
@@ -61,7 +63,7 @@ class PokerApp:
     # Add Ip address 3 lines below here e.g
     # def start_game(self, mode="Offline", host_ip='171.35.61.2'):
 
-    def start_game(self, mode="Offline", host_ip=None): #Replace None to your '{ip address}' on this line
+    def start_game(self, mode="Offline", host_ip=None): #Replace None to your 'ip address' on this line
         """Instantiates correct controller depending on button clicked
         and instantiates the game window"""
         try:
