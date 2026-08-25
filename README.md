@@ -82,5 +82,3 @@ On their turn, player can either pass or bet 1 chip. There is no raising
 The bot uses counterfactual regret minimisation (CFR). CFR simultaneously creates a strategy for both players at once by continuously playing and improving against itself over many training iterations. For every possible decision it could make, it generates a ‘regret’ value that represents what it would have gained had it taken that decision. It then uses this regret value to improve its current strategy. After thousands of iterations, the algorithm will improve its strategy until it reaches a Nash equilibrium – a situation where neither players' strategy can improve any further.
 
 The bot you play against is incredibly accurate and despite the simplicity of the game, implements strategy that you would see in real poker such as bluffing. A perfect strategy against the bot in the application, which was trained with 500,000 training iterations, would win 0.0000457 chips per hand on average.
-
-An in-depth project writeup can found here [Poker_Writeup.docx](https://github.com/user-attachments/files/29163596/Poker_Writeup.docx). The most interesting parts are within the design section
