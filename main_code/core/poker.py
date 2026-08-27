@@ -15,7 +15,7 @@ from core.core_lib import *
 # TODO tighten opening range
 # TODO change range depending on position and num of players
 # TODO hold invested of each player? currently inefficient replace the functions
-# TODO if big bet and 1 player calls, bb will also call with nothing
+# TODO if big bet and 1 player calls, bb will also call
 # TODO consider hand strength with betsize
 # 3bet more oop
 # underbluffs?
