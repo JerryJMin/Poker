@@ -5,7 +5,6 @@ from abc import ABC
 from core.winner import get_winner, all_hands_ranked, group_rank_pre
 from core.core_lib import *
 
-# BUG Line 490 could result in key error when calling no matter what but check
 # TODO test valid bets on raises
 # TODO make calling range capped and raising range tighter with percentages
 # TODO Consider hand within all hands (not just range)
