@@ -7,6 +7,7 @@
 [Joining Online Games](#how-to-join-an-online-game)  
 [About Kuhn Poker](#kuhn-poker-1)  
 
+Offline only [web app](https://jerryjmin.github.io/Poker/) (let it load and click ready to start)
 ## Project Overview
 
 This project allows you to play poker against bots, friends or in a special game mode called Kuhn Poker. Most parts, such as the poker engine, GUI and the multi-player bots, were written in python. The training algorithm for the machine learning bot was written in rust - although rust is not needed to run the application.
